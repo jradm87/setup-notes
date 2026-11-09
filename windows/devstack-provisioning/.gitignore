@@ -1,0 +1,3 @@
+# Logs e inventários contêm dados da máquina (caminhos, versões). Não versionar.
+logs/*
+!logs/.gitkeep
