@@ -48,16 +48,17 @@ Write-DevLog -Level INFO -Step 'orchestrator' -Action 'start' -Message "mode=$mo
 
 $steps = @(
     @{ N = 1;  Title = 'Inventário inicial'; File = '01-Inventory.ps1';          DependsOn = @();          Extra = @{ OutputName = 'inventory-before.json' } }
-    @{ N = 2;  Title = 'PowerShell 7';       File = '02-Install-PowerShell.ps1'; DependsOn = @();          Extra = @{} }
-    @{ N = 3;  Title = 'Git';                File = '03-Install-Git.ps1';        DependsOn = @();          Extra = @{} }
-    @{ N = 4;  Title = 'uv';                 File = '04-Install-UV.ps1';         DependsOn = @();          Extra = @{} }
-    @{ N = 5;  Title = 'Python';             File = '05-Install-Python.ps1';     DependsOn = @('uv');      Extra = @{} }
-    @{ N = 6;  Title = 'Node.js';            File = '06-Install-Node.ps1';       DependsOn = @();          Extra = @{} }
-    @{ N = 7;  Title = 'VS Code';            File = '07-Install-VSCode.ps1';     DependsOn = @();          Extra = @{ SkipExtensions = [bool]$SkipVSCodeExtensions } }
-    @{ N = 8;  Title = 'OpenSSH';            File = '08-Install-OpenSSH.ps1';    DependsOn = @();          Extra = @{} }
-    @{ N = 9;  Title = 'Teste backend';      File = '09-Test-Backend.ps1';       DependsOn = @('uv', "Python $($ctx.Config.PythonVersion)"); Extra = @{ KeepTemp = [bool]$KeepTemp }; Test = $true }
-    @{ N = 10; Title = 'Teste frontend';     File = '10-Test-Frontend.ps1';      DependsOn = @("Node $($ctx.Config.NodeMajorVersion)"); Extra = @{ KeepTemp = [bool]$KeepTemp }; Test = $true }
-    @{ N = 11; Title = 'Validação final';    File = '11-Validate.ps1';           DependsOn = @();          Extra = @{ WriteInventory = (-not $DryRun) } }
+    @{ N = 2;  Title = 'WinGet';             File = '01b-Install-WinGet.ps1';    DependsOn = @();          Extra = @{} }
+    @{ N = 3;  Title = 'PowerShell 7';       File = '02-Install-PowerShell.ps1'; DependsOn = @();          Extra = @{} }
+    @{ N = 4;  Title = 'Git';                File = '03-Install-Git.ps1';        DependsOn = @();          Extra = @{} }
+    @{ N = 5;  Title = 'uv';                 File = '04-Install-UV.ps1';         DependsOn = @();          Extra = @{} }
+    @{ N = 6;  Title = 'Python';             File = '05-Install-Python.ps1';     DependsOn = @('uv');      Extra = @{} }
+    @{ N = 7;  Title = 'Node.js';            File = '06-Install-Node.ps1';       DependsOn = @();          Extra = @{} }
+    @{ N = 8;  Title = 'VS Code';            File = '07-Install-VSCode.ps1';     DependsOn = @();          Extra = @{ SkipExtensions = [bool]$SkipVSCodeExtensions } }
+    @{ N = 9;  Title = 'OpenSSH';            File = '08-Install-OpenSSH.ps1';    DependsOn = @();          Extra = @{} }
+    @{ N = 10; Title = 'Teste backend';      File = '09-Test-Backend.ps1';       DependsOn = @('uv', "Python $($ctx.Config.PythonVersion)"); Extra = @{ KeepTemp = [bool]$KeepTemp }; Test = $true }
+    @{ N = 11; Title = 'Teste frontend';     File = '10-Test-Frontend.ps1';      DependsOn = @("Node $($ctx.Config.NodeMajorVersion)"); Extra = @{ KeepTemp = [bool]$KeepTemp }; Test = $true }
+    @{ N = 12; Title = 'Validação final';    File = '11-Validate.ps1';           DependsOn = @();          Extra = @{ WriteInventory = (-not $DryRun) } }
 )
 $total = $steps.Count
 $all = New-Object System.Collections.Generic.List[object]
@@ -93,14 +94,14 @@ foreach ($s in $steps) {
         if ($out.Count -eq 0) {
             $stepResults.Add((New-StepResult -Component $s.Title -Status 'WARNING' -Message 'Etapa não retornou resultado'))
         }
-        if ($s.N -eq 11 -and $DryRun) {
+        if ($s.File -eq '11-Validate.ps1' -and $DryRun) {
             # Em DRY-RUN nada foi instalado: ausências são esperadas, não falhas.
             foreach ($r in @($out | Where-Object Status -eq 'FAILED')) {
                 $r.Status = 'WARNING'
                 $r.Message = "$($r.Message) (esperado em DRY-RUN)"
             }
         }
-        foreach ($r in $out) { if ($s.N -eq 11) { $validation.Add($r) } else { $all.Add($r) } }
+        foreach ($r in $out) { if ($s.File -eq '11-Validate.ps1') { $validation.Add($r) } else { $all.Add($r) } }
         $worst = 'OK'
         foreach ($st in @('SKIPPED', 'WARNING', 'FAILED')) { if (@($out | Where-Object Status -eq $st).Count) { $worst = $st } }
         if ($out.Count -gt 0) { $stepResults.Add([pscustomobject]@{ PSTypeName = 'DevStack.StepResult'; Component = $s.Title; Status = $worst; Message = (@($out | ForEach-Object { "$($_.Component)=$($_.Status)" }) -join ', '); Version = ''; Path = ''; Changed = [bool](@($out | Where-Object Changed).Count); RestartRequired = [bool](@($out | Where-Object RestartRequired).Count) }) }

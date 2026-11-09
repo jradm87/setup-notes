@@ -27,8 +27,8 @@ Desenvolvimento em **Windows nativo**. A produção futura será **Linux em cont
 
 - Windows 10/11 x64 ou arm64
 - Windows PowerShell 5.1 (nativo) ou PowerShell 7
-- WinGet (só se for preciso instalar PowerShell 7, Git ou VS Code)
-- Acesso HTTPS a `nodejs.org`, `github.com`, `pypi.org`, `registry.npmjs.org` e ao marketplace do VS Code
+- WinGet: se faltar e for preciso instalar PowerShell 7, Git ou VS Code, o instalador cuida disso
+- Acesso HTTPS a `nodejs.org`, `github.com`, `pypi.org`, `registry.npmjs.org`, ao marketplace do VS Code e, se faltar o WinGet, a `www.powershellgallery.com`
 - Administrador: **não** é necessário para a maior parte. O PowerShell 7 só pede UAC se o WinGet escolher o instalador MSI.
   O OpenSSH Client exige sessão elevada, mas só se estiver ausente.
 
@@ -49,6 +49,7 @@ devstack-provisioning/
 ├── scripts/
 │   ├── 00-Common.ps1         logging, execução nativa, downloads verificados, processos
 │   ├── 01-Inventory.ps1      inventário somente leitura -> JSON
+│   ├── 01b-Install-WinGet.ps1  instala o WinGet só se faltar e for necessário
 │   ├── 02..08-Install-*.ps1  uma etapa por componente
 │   ├── 09-Test-Backend.ps1   projeto FastAPI temporário
 │   ├── 10-Test-Frontend.ps1  projeto React+TS+Vite temporário

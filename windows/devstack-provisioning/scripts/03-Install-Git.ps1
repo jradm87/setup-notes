@@ -30,6 +30,10 @@ try {
 
     Write-Info 'Git não encontrado.'
     if (-not (Test-WinGetAvailable)) {
+        if ($DryRun) {
+            Write-DryRun 'Dependeria do WinGet, instalado pela etapa anterior na execução real.'
+            return (New-StepResult -Component 'Git' -Status 'SKIPPED' -Message 'DRY-RUN: instalaria via WinGet')
+        }
         Write-Fail 'WinGet não disponível.'
         return (New-StepResult -Component 'Git' -Status 'FAILED' -Message 'WinGet ausente')
     }

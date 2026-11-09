@@ -442,7 +442,7 @@ function Test-WinGetAvailable {
 function Confirm-WinGetPackage {
     # Confirma que o ID exato existe na fonte 'winget' (somente leitura).
     param([Parameter(Mandatory)][string]$Id)
-    $r = Invoke-NativeCommand -FilePath 'winget' -ArgumentList @('show', '--id', $Id, '-e', '--source', 'winget', '--disable-interactivity') -Quiet -Utf8Output
+    $r = Invoke-NativeCommand -FilePath 'winget' -ArgumentList @('show', '--id', $Id, '-e', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -Quiet -Utf8Output
     if ($r.ExitCode -ne 0) { return $null }
     # Tolerante a idioma e a code page ("Version", "Versão", "Vers├úo"...).
     $verLine = @($r.Output | Where-Object { $_ -match '^\s*Vers\S*\s*:\s*\S' }) | Select-Object -First 1
@@ -456,6 +456,7 @@ $script:WinGetCodes = @{
     -1978335135 = 'Pacote já instalado'                                     # 0x8A150061
     -1978334967 = 'Reinicialização necessária para concluir a instalação'  # 0x8A150109
     3010        = 'Reinicialização necessária (MSI 3010)'
+    -2147009255 = 'Implantação MSIX interrompida: usuário desconectado (0x80073D19)'
 }
 
 function Install-WinGetPackage {
@@ -463,10 +464,11 @@ function Install-WinGetPackage {
         Instala um pacote por ID exato. NUNCA atualiza (--no-upgrade), nunca usa --force.
         Retorna { Success; RestartRequired; ExitCode; Message }.
     #>
-    param([Parameter(Mandatory)][string]$Id, [string]$Scope)
+    param([Parameter(Mandatory)][string]$Id, [string]$Scope, [string]$InstallerType)
     $wgArgs = @('install', '--id', $Id, '-e', '--source', 'winget', '--no-upgrade',
         '--accept-package-agreements', '--accept-source-agreements', '--disable-interactivity')
     if ($Scope) { $wgArgs += @('--scope', $Scope) }
+    if ($InstallerType) { $wgArgs += @('--installer-type', $InstallerType) }
     $r = Invoke-NativeCommand -FilePath 'winget' -ArgumentList $wgArgs -Utf8Output
     $restart = ($r.ExitCode -eq -1978334967 -or $r.ExitCode -eq 3010)
     $msg = if ($script:WinGetCodes.ContainsKey($r.ExitCode)) { $script:WinGetCodes[$r.ExitCode] } else { "exit code $($r.ExitCode)" }

@@ -6,6 +6,7 @@ nenhum deles altera nada além de gravar logs em `logs\`.
 | Script | Pode alterar | Condição | Escopo | Reversão |
 |---|---|---|---|---|
 | `01-Inventory.ps1` | Nada (só grava `logs\*.json`) | sempre | pacote | apagar o JSON |
+| `01b-Install-WinGet.ps1` | Instala o provedor NuGet e o módulo `Microsoft.WinGet.Client` em `Documents\WindowsPowerShell` (ou `Documents\PowerShell`) e o WinGet (App Installer) para o usuário. Usa `-Force` só para evitar perguntas e apenas no que está ausente. Registra o PSGallery padrão se não existir, sem marcá-lo como confiável | só se o `winget` não existir **e** faltar PowerShell 7, Git ou VS Code | usuário | `Uninstall-Module Microsoft.WinGet.Client` e Aplicativos > Instalador de Aplicativo |
 | `02-Install-PowerShell.ps1` | Instala o PowerShell 7. O WinGet escolhe o instalador: **MSIX** (`C:\Program Files\WindowsApps`, atalho em `%LOCALAPPDATA%\Microsoft\WindowsApps`, PATH inalterado; foi o caso nesta máquina) ou MSI (`%ProgramFiles%\PowerShell\7`, com entrada no PATH do sistema) | só se `pwsh` não existir | máquina (UAC) | Configurações > Aplicativos > PowerShell 7 |
 | `03-Install-Git.ps1` | Instala o Git for Windows (PATH adicionado pelo instalador) | só se `git` não existir | máquina | Aplicativos > Git |
 | `04-Install-UV.ps1` | Cria `%LOCALAPPDATA%\DevStack\uv\bin\{uv,uvx,uvw}.exe` e `DevStack\downloads\uv-*.zip` | só se não houver uv | usuário | apagar `DevStack\uv` |

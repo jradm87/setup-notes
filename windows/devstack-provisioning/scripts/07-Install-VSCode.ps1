@@ -24,6 +24,10 @@ try {
         Write-Info 'Não será atualizado nem reinstalado.'
     } else {
         Write-Info 'VS Code não encontrado.'
+        if ($DryRun) {
+            Write-DryRun 'Dependeria do WinGet, instalado pela etapa anterior na execução real.'
+            return (New-StepResult -Component 'VS Code' -Status 'SKIPPED' -Message 'DRY-RUN: instalaria via WinGet')
+        }
         if (-not (Test-WinGetAvailable)) { return (New-StepResult -Component 'VS Code' -Status 'FAILED' -Message 'WinGet ausente') }
         $info = Confirm-WinGetPackage -Id $pkg.Id
         if (-not $info) { return (New-StepResult -Component 'VS Code' -Status 'FAILED' -Message "Pacote $($pkg.Id) não confirmado") }

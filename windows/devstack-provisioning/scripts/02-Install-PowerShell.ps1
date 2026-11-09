@@ -35,6 +35,10 @@ try {
 
     Write-Info 'PowerShell 7 não encontrado.'
     if (-not (Test-WinGetAvailable)) {
+        if ($DryRun) {
+            Write-DryRun 'Dependeria do WinGet, instalado pela etapa anterior na execução real.'
+            return (New-StepResult -Component 'PowerShell' -Status 'SKIPPED' -Message 'DRY-RUN: instalaria via WinGet')
+        }
         Write-Fail 'WinGet não disponível. Veja docs\TROUBLESHOOTING.md (WinGet ausente).'
         return (New-StepResult -Component 'PowerShell' -Status 'FAILED' -Message 'WinGet ausente')
     }
@@ -47,7 +51,7 @@ try {
 
     if ($DryRun) {
         Write-DryRun "Instalaria PowerShell 7 ($($info.Id) $($info.Version)) via: winget install --id $($info.Id) -e --source winget --no-upgrade"
-        Write-DryRun 'O WinGet escolheria o instalador (MSIX ou MSI); o MSI pediria elevação (UAC).'
+        Write-DryRun 'O WinGet escolheria o instalador (MSIX ou MSI). Se o padrão falhasse, tentaria o MSI, que pede elevação (UAC).'
         return (New-StepResult -Component 'PowerShell' -Status 'SKIPPED' -Message "DRY-RUN: instalaria $($info.Id) $($info.Version)")
     }
 
@@ -58,6 +62,12 @@ try {
     $res = Install-WinGetPackage -Id $pkg.Id -Scope $pkg.Scope
     Update-SessionPathFromRegistry
     $pwsh = Find-PwshExecutable
+    if (-not $pwsh -and -not $res.RestartRequired) {
+        Write-Warn "Instalador padrão falhou ($($res.Message)). Tentando o instalador MSI; o Windows pode pedir elevação (UAC)." 'install'
+        $res = Install-WinGetPackage -Id $pkg.Id -Scope $pkg.Scope -InstallerType 'wix'
+        Update-SessionPathFromRegistry
+        $pwsh = Find-PwshExecutable
+    }
     if ($pwsh) {
         $v = Get-PwshVersion $pwsh
         Write-Ok "PowerShell $v instalado em $pwsh" 'install'

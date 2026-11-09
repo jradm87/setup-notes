@@ -5,11 +5,18 @@ linha de comando, o exit code e a saída (segredos mascarados).
 
 ## WinGet ausente
 
-`winget` vem com o "Instalador de Aplicativo" (App Installer) da Microsoft Store.
+`winget` vem com o "Instalador de Aplicativo" (App Installer) da Microsoft Store, mas pode faltar em PCs novos.
 - Confira com `winget --version`.
-- Instale ou repare o **App Installer** pela Microsoft Store e abra um novo terminal.
+- O instalador resolve isso sozinho na etapa `01b-Install-WinGet.ps1`, quando PowerShell 7, Git ou VS Code estão ausentes.
+- Se a etapa falhar, confira o acesso a `www.powershellgallery.com`, `github.com` e `cdn.winget.microsoft.com`, ou instale o **App Installer** pela Microsoft Store e abra um novo terminal.
 - WinGet só é necessário para PowerShell 7, Git e VS Code **quando ausentes**. uv, Python e Node não dependem dele.
 - Erro de termos de origem: rode `winget list` uma vez manualmente e aceite.
+
+## PowerShell 7: erro `-2147009255` (`0x80073D19`)
+
+- Significa que a implantação MSIX foi interrompida porque "um usuário foi desconectado". Pode aparecer em sessões remotas.
+- A etapa 02 tenta automaticamente o instalador MSI. Ele pede elevação (UAC) e instala para a máquina toda.
+- Sem permissão de administrador, a etapa fica FAILED. O restante da stack funciona, porque os scripts rodam no Windows PowerShell 5.1.
 
 ## Proxy / rede corporativa
 

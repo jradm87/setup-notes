@@ -35,6 +35,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-DevStack.ps1 -DryR
 - **Como validar:** abrir o JSON.
 - **Possíveis erros:** `winget list` lento ou pedindo aceite de termos. O inventário segue sem essa parte.
 
+## ETAPA 1b — WinGet (`01b-Install-WinGet.ps1`)
+
+- **Objetivo:** ter o `winget` em PCs novos, onde ele pode faltar.
+- **O que é verificado:** `winget` no PATH e se PowerShell 7, Git ou VS Code estão ausentes.
+- **O que pode ser instalado:** só se o `winget` faltar **e** algum desses estiver ausente, pelo método oficial da Microsoft:
+  provedor NuGet (se ausente), módulo `Microsoft.WinGet.Client` (se ausente) e `Repair-WinGetPackageManager`. Tudo no escopo do usuário.
+- **O que NÃO é alterado:** um WinGet existente (não é atualizado), a confiança do repositório PSGallery e a ExecutionPolicy.
+- **Como validar:** em um **novo** terminal, `winget --version`.
+- **Possíveis erros:** PSGallery ou GitHub bloqueados por proxy; Windows Server ou LTSC sem as dependências do App Installer. Ver TROUBLESHOOTING.
+
 ## ETAPA 2 — PowerShell 7 (`02-Install-PowerShell.ps1`)
 
 - **Objetivo:** ter `pwsh` 7 disponível.
@@ -42,6 +52,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-DevStack.ps1 -DryR
 - **O que pode ser instalado:** `Microsoft.PowerShell`, só se ausente, depois de confirmar com
   `winget show --id Microsoft.PowerShell -e --source winget`. Comando:
   `winget install --id Microsoft.PowerShell -e --source winget --no-upgrade --accept-package-agreements --accept-source-agreements`
+  Se o instalador padrão falhar e o `pwsh` continuar ausente, tenta de novo com `--installer-type wix` (MSI, pede UAC).
 - **O que NÃO é alterado:** Windows PowerShell 5.1, ExecutionPolicy, perfis, `pwsh` existente (não é atualizado).
 - **Elevação:** o WinGet escolhe o instalador. Nesta máquina foi o pacote MSIX (`C:\Program Files\WindowsApps`, com atalho em `%LOCALAPPDATA%\Microsoft\WindowsApps`), sem mudar o PATH. Se for o MSI, o Windows mostra o UAC.
 - **Como validar:** em um **novo** terminal, `pwsh --version`.
